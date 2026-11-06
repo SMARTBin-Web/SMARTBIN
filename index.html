@@ -4,11 +4,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Smart Bin Portal</title>
+  <!-- Google Fonts & QRCode.js & Canvas Confetti -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 
@@ -24,6 +26,7 @@
       --text-muted: #94a3b8;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
+    
     body {
       background: radial-gradient(circle at top right, #134e4a, #0f172a 60%);
       color: var(--text);
@@ -32,8 +35,10 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 20px;
+      padding: 16px;
     }
+
+    /* Container: mobile layout by default */
     .container {
       width: 100%;
       max-width: 440px;
@@ -41,9 +46,11 @@
       background: var(--card-bg);
       border: 1px solid var(--border);
       border-radius: 24px;
-      padding: 30px 24px;
+      padding: 26px 20px;
       box-shadow: 0 20px 40px -15px rgba(0,0,0,0.5);
+      transition: max-width 0.3s ease, padding 0.3s ease;
     }
+
     .header { text-align: center; margin-bottom: 20px; }
     .header .badge {
       display: inline-flex; align-items: center; gap: 6px;
@@ -54,7 +61,7 @@
     }
     .header h1 { font-size: 1.75rem; font-weight: 800; letter-spacing: -0.5px; }
 
-    /* Home / Intro Section Styles */
+    /* Home View */
     .home-section {
       text-align: center;
       animation: fadeIn 0.3s ease;
@@ -81,27 +88,9 @@
       gap: 8px;
     }
     .intro-desc {
-      font-size: 0.85rem;
+      font-size: 0.88rem;
       color: var(--text-muted);
       line-height: 1.55;
-      margin-bottom: 14px;
-    }
-    .intro-features {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-    }
-    .intro-chip {
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid rgba(255, 255, 255, 0.07);
-      border-radius: 10px;
-      padding: 8px 10px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      color: #cbd5e1;
-      display: flex;
-      align-items: center;
-      gap: 6px;
     }
     .intro-prompt {
       font-size: 0.8rem;
@@ -289,21 +278,6 @@
     .ntfy-banner-desc { font-size: 0.78rem; color: var(--text-muted); line-height: 1.4; }
     .ntfy-banner-desc a { color: #60a5fa; text-decoration: none; font-weight: 700; }
     .ntfy-banner-desc a:hover { text-decoration: underline; }
-    .ntfy-test-btn {
-      margin-top: 8px; padding: 6px 14px; font-size: 0.78rem; font-weight: 700;
-      border: 1px solid rgba(59,130,246,0.4); background: rgba(59,130,246,0.15);
-      color: #93c5fd; border-radius: 8px; cursor: pointer; transition: all 0.2s;
-    }
-    .ntfy-test-btn:hover { background: rgba(59,130,246,0.3); color: #fff; }
-    .ntfy-test-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-    .ntfy-sent-badge {
-      display: inline-flex; align-items: center; gap: 4px;
-      font-size: 0.72rem; font-weight: 700; color: #6ee7b7;
-      background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3);
-      border-radius: 20px; padding: 3px 10px; margin-left: 8px;
-      opacity: 0; transition: opacity 0.3s ease;
-    }
-    .ntfy-sent-badge.show { opacity: 1; }
 
     /* Bin Cards */
     .bins-list { display: flex; flex-direction: column; gap: 12px; max-height: 380px; overflow-y: auto; padding-right: 2px; }
@@ -321,6 +295,62 @@
     .alert { padding: 10px 14px; border-radius: 12px; font-size: 0.85rem; margin-bottom: 16px; display: none; }
     .alert-error { background: rgba(239,68,68,0.2); border: 1px solid rgba(239,68,68,0.4); color: #fca5a5; }
     .alert-info  { background: rgba(59,130,246,0.2); border: 1px solid rgba(59,130,246,0.4); color: #93c5fd; }
+
+    /* =========================================================================
+       RESPONSIVE ADAPTATION: LAPTOP & DESKTOP (Screens >= 768px)
+       ========================================================================= */
+    @media (min-width: 768px) {
+      body {
+        padding: 40px 24px;
+      }
+      .container {
+        max-width: 820px;
+        padding: 38px 36px;
+      }
+      .header {
+        margin-bottom: 26px;
+      }
+      .header h1 {
+        font-size: 2.2rem;
+      }
+      .tab-nav {
+        max-width: 380px;
+        margin: 0 auto 24px auto;
+      }
+      /* Portal options side-by-side on laptop */
+      .portal-options {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+      }
+      /* Bin cards 2-column grid on laptop */
+      .bins-list {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+        max-height: none;
+        overflow: visible;
+      }
+      /* User dashboard: Points & QR side-by-side on laptop */
+      .user-dash-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+      .user-dash-grid .points-card {
+        margin-bottom: 0;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+      #userAuthSubSection, #adminAuthSubSection {
+        max-width: 420px;
+        margin: 0 auto;
+      }
+    }
   </style>
 </head>
 <body>
@@ -330,10 +360,10 @@
       <h1>SMART BIN</h1>
     </div>
 
-    <!-- Back Button (shown only when inside User or Admin view) -->
+    <!-- Back Button -->
     <button type="button" class="back-btn" id="backBtn" style="display: none;">← Back</button>
 
-    <!-- Mode Selector Tabs (shown only when inside User or Admin view) -->
+    <!-- Mode Selector Tabs -->
     <div class="tab-nav" id="tabNav" style="display: none;">
       <button class="tab-btn active" id="tabUserBtn">👤 User</button>
       <button class="tab-btn" id="tabAdminBtn">🛡️ Admin</button>
@@ -341,19 +371,13 @@
 
     <div id="alertBox" class="alert"></div>
 
-    <!-- ==================== HOME / INTRO VIEW ==================== -->
+    <!-- ==================== HOME VIEW ==================== -->
     <div id="homeSection" class="home-section">
       <div class="intro-card">
         <h2>Smart Waste Management</h2>
         <p class="intro-desc">
-          An automated, eco-friendly waste management system that rewards recycling and provides live bin capacity tracking across campus locations.
+          An automated, eco-friendly waste management system that rewards recycling and provides live bin capacity tracking across locations.
         </p>
-        <div class="intro-features">
-          <div class="intro-chip"><span>♻️</span> Earn Points</div>
-          <div class="intro-chip"><span>📲</span> Personal QR</div>
-          <div class="intro-chip"><span>📍</span> Live Fill Levels</div>
-          <div class="intro-chip"><span>🔔</span> Push Alerts</div>
-        </div>
       </div>
 
       <div class="intro-prompt">Get Started:</div>
@@ -403,12 +427,18 @@
       <div id="userDashboardSubSection" class="dashboard">
         <div class="user-greeting">Welcome, <strong id="displayName"></strong>!</div>
         <div class="live-status"><div class="live-pulse"></div> Live Connected</div>
-        <div class="points-card">
-          <div class="points-label">TOTAL POINTS</div>
-          <div class="points-value" id="pointsDisplay">0</div>
+
+        <div class="user-dash-grid">
+          <div class="points-card">
+            <div class="points-label">TOTAL POINTS</div>
+            <div class="points-value" id="pointsDisplay">0</div>
+          </div>
+          <div>
+            <div class="qr-wrapper"><div id="qrcode"></div></div>
+            <div class="qr-hint">Point this QR code at the scanner</div>
+          </div>
         </div>
-        <div class="qr-wrapper"><div id="qrcode"></div></div>
-        <div class="qr-hint">Point this QR code at the scanner</div>
+
         <button class="btn btn-secondary" id="logoutBtn">Switch User</button>
       </div>
     </div>
@@ -424,7 +454,6 @@
       </div>
 
       <div id="adminDashboardSubSection" style="display:none;">
-        <!-- ntfy.sh Banner -->
         <div class="ntfy-banner">
           <div class="ntfy-banner-icon">🔔</div>
           <div class="ntfy-banner-body">
@@ -434,8 +463,6 @@
               <a id="ntfyInstallLink" href="https://ntfy.sh/" target="_blank" rel="noopener">Install the ntfy app</a>,
               then <a href="https://ntfy.sh/smartbin" target="_blank" rel="noopener">click for alerts</a>.
             </div>
-            <button class="ntfy-test-btn" id="ntfyTestBtn">📤 Send Test Alert</button>
-            <span class="ntfy-sent-badge" id="ntfySentBadge">✓ Sent!</span>
           </div>
         </div>
 
@@ -498,7 +525,7 @@
     let isRegisterMode = false, currentUserId = null;
     let qrInstance = null, userPointsListener = null, binsListener = null;
 
-    const defaultCampusBins = {
+    const defaultBins = {
       bin_01: { location: "EN Bldg 1st floor", fill_percent: 0, is_full: false },
       bin_02: { location: "EN Bldg 2nd floor", fill_percent: 0, is_full: false },
       bin_03: { location: "EN Bldg 3rd floor", fill_percent: 0, is_full: false },
@@ -665,9 +692,9 @@
     function listenForBins() {
       if (isFirebaseReady && db) {
         binsListener = db.ref("bins").on("value", (snap) => {
-          renderBinsList(Object.assign({}, defaultCampusBins, snap.val() || {}));
+          renderBinsList(Object.assign({}, defaultBins, snap.val() || {}));
         });
-      } else { renderBinsList(defaultCampusBins); }
+      } else { renderBinsList(defaultBins); }
     }
 
     function renderBinsList(binsData) {
@@ -675,7 +702,7 @@
       checkBinsForAlerts(binsData);
       Object.keys(binsData).forEach(key => {
         const bin      = binsData[key];
-        const name     = bin.location || "Campus Location";
+        const name     = bin.location || "Location";
         const percent  = Math.min(100, Math.max(0, Math.round(bin.fill_percent || 0)));
         const isFull   = bin.is_full === true || percent >= 80;
         const chipClass = isFull ? "chip-full" : percent >= 60 ? "chip-warning" : "chip-ok";
@@ -731,27 +758,13 @@
       }
     }
 
-    document.getElementById("ntfyTestBtn").addEventListener("click", async () => {
-      const btn   = document.getElementById("ntfyTestBtn");
-      const badge = document.getElementById("ntfySentBadge");
-      btn.disabled = true; btn.textContent = "Sending…";
-      const ok = await sendNtfyAlert(null, null, null, true);
-      btn.textContent = "📤 Send Test Alert"; btn.disabled = false;
-      if (ok) {
-        badge.classList.add("show");
-        setTimeout(() => badge.classList.remove("show"), 3000);
-      } else {
-        showAlert("Could not send the alert. Install the ntfy app, then click ntfy.sh/smartbin.");
-      }
-    });
-
     function checkBinsForAlerts(binsData) {
       Object.keys(binsData).forEach(key => {
         const bin     = binsData[key];
         const percent = Math.min(100, Math.max(0, Math.round(bin.fill_percent || 0)));
         const isFull  = bin.is_full === true || percent >= 80;
         if (isFull && !alertedBins[key]) {
-          sendNtfyAlert(key, bin.location || "Campus Bin", percent, false);
+          sendNtfyAlert(key, bin.location || "Bin", percent, false);
         } else if (!isFull && alertedBins[key]) {
           delete alertedBins[key];
         }
