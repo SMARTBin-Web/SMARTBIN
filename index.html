@@ -415,7 +415,7 @@
           <input type="text" id="usernameInput" placeholder="Enter your username" autocomplete="off" />
         </div>
         <div class="form-group">
-          <label>Password</label>
+          <label>Password <span style="font-size:0.75rem;color:var(--text-muted);font-weight:400;">(Case-sensitive & unique per person)</span></label>
           <input type="password" id="userPasswordInput" placeholder="Enter your password" autocomplete="current-password" />
         </div>
         <button type="button" class="btn btn-primary" id="loginBtn">Login</button>
@@ -587,6 +587,7 @@
       isRegisterMode = !isRegisterMode;
       loginBtn.textContent      = isRegisterMode ? "Create Account & Get QR" : "Login";
       toggleAuthBtn.textContent = isRegisterMode ? "Already have an account? Login" : "Create New Account";
+      userPasswordInput.value   = "";
     });
 
     /* ── USER AUTH ── */
@@ -595,6 +596,7 @@
       const enteredPassword = userPasswordInput.value;
       if (!rawName)         { showAlert("Please enter a username!"); return; }
       if (!enteredPassword) { showAlert("Please enter a password!"); return; }
+      if (enteredPassword.length < 3) { showAlert("Password must be at least 3 characters long!"); return; }
       const userId = rawName.toLowerCase().replace(/[^a-z0-9_-]/g, "");
       if (!userId)  { showAlert("Please use alphanumeric characters (a-z, 0-9)"); return; }
 
@@ -606,32 +608,95 @@
         resetBtn();
         const savedPass = localStorage.getItem("user_pwd_" + userId);
         if (isRegisterMode) {
-          if (savedPass) { showAlert("Username '" + rawName + "' is already taken!"); }
-          else { localStorage.setItem("user_pwd_" + userId, enteredPassword); loginUser(userId, rawName); }
+          if (savedPass) {
+            showAlert("Username '" + rawName + "' is already taken! Please choose another.");
+            return;
+          }
+          // Unique password check across local users
+          let isPasswordTaken = false;
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith("user_pwd_") && key !== ("user_pwd_" + userId)) {
+              if (localStorage.getItem(key) === enteredPassword) {
+                isPasswordTaken = true;
+                break;
+              }
+            }
+          }
+          if (isPasswordTaken) {
+            showAlert("This password is already in use by another person! Please choose a unique password.");
+            return;
+          }
+          localStorage.setItem("user_pwd_" + userId, enteredPassword);
+          loginUser(userId, rawName);
         } else {
-          if (!savedPass) { showAlert("Username '" + rawName + "' not found! Click 'Create New Account' below."); }
-          else if (savedPass !== enteredPassword) { showAlert("Incorrect password!"); userPasswordInput.value = ""; }
-          else { loginUser(userId, rawName); }
+          if (!savedPass) {
+            showAlert("Username '" + rawName + "' not found! Click 'Create New Account' below.");
+          } else if (savedPass !== enteredPassword) {
+            showAlert("Incorrect password! Passwords are case-sensitive.");
+            userPasswordInput.value = "";
+          } else {
+            loginUser(userId, rawName);
+          }
         }
       };
 
       if (isFirebaseReady && db) {
-        const userRef = db.ref("users/" + userId);
-        const timer   = setTimeout(() => { console.warn("Firebase timeout"); doLocalAuth(); }, 3000);
-        userRef.once("value", (snap) => {
-          clearTimeout(timer); resetBtn();
-          if (isRegisterMode) {
-            if (snap.exists()) { showAlert("Username '" + rawName + "' is already taken!"); }
-            else { userRef.set({ name: rawName, password: enteredPassword, points: 0, lastUpdated: Date.now() }, (err) => { if (err) doLocalAuth(); else loginUser(userId, rawName); }); }
-          } else {
-            if (!snap.exists()) { showAlert("Username '" + rawName + "' not found!"); }
-            else {
-              const d = snap.val() || {};
-              if (d.password && d.password !== enteredPassword) { showAlert("Incorrect password!"); userPasswordInput.value = ""; }
-              else { loginUser(userId, rawName); }
+        const timer = setTimeout(() => { console.warn("Firebase timeout"); doLocalAuth(); }, 3500);
+
+        if (isRegisterMode) {
+          // Check both username existence and password uniqueness across all users
+          db.ref("users").once("value", (snap) => {
+            clearTimeout(timer); resetBtn();
+            const allUsers = snap.val() || {};
+
+            // 1. Check if username is already taken
+            if (allUsers[userId]) {
+              showAlert("Username '" + rawName + "' is already taken! Please choose another.");
+              return;
             }
-          }
-        }, () => { clearTimeout(timer); doLocalAuth(); });
+
+            // 2. Case-sensitive uniqueness check: no two persons can share the exact same password
+            const isPasswordTaken = Object.keys(allUsers).some(uid => {
+              const u = allUsers[uid];
+              return u && u.password && u.password === enteredPassword;
+            });
+            if (isPasswordTaken) {
+              showAlert("This password is already in use by another person! Please choose a unique password.");
+              return;
+            }
+
+            // 3. Register user with unique case-sensitive password
+            db.ref("users/" + userId).set(
+              { name: rawName, password: enteredPassword, points: 0, lastUpdated: Date.now() },
+              (err) => {
+                if (err) {
+                  doLocalAuth();
+                } else {
+                  localStorage.setItem("user_pwd_" + userId, enteredPassword);
+                  loginUser(userId, rawName);
+                }
+              }
+            );
+          }, () => { clearTimeout(timer); doLocalAuth(); });
+        } else {
+          // Login: strict case-sensitive password check
+          db.ref("users/" + userId).once("value", (snap) => {
+            clearTimeout(timer); resetBtn();
+            if (!snap.exists()) {
+              showAlert("Username '" + rawName + "' not found! Click 'Create New Account' below.");
+            } else {
+              const d = snap.val() || {};
+              if (d.password && d.password !== enteredPassword) {
+                showAlert("Incorrect password! Passwords are case-sensitive.");
+                userPasswordInput.value = "";
+              } else {
+                localStorage.setItem("user_pwd_" + userId, enteredPassword);
+                loginUser(userId, rawName);
+              }
+            }
+          }, () => { clearTimeout(timer); doLocalAuth(); });
+        }
       } else { doLocalAuth(); }
     });
 
